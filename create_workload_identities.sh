@@ -37,5 +37,5 @@ echo "AZURE_SUBSCRIPTION_ID: $(az account show --query id --output tsv)"
 az group delete --resource-group GithubWorkflowIssue --yes --no-wait
 
 git add .
-git commit -m "Intial checkin"
+git commit -m "Fixed RS name issue."
 git push
