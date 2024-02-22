@@ -1,0 +1,2 @@
+create_resource_group.sh
+create_workload_identities.sh
