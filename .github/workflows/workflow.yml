@@ -17,7 +17,7 @@ jobs:
       uses: ./.github/workflows/deploy.yml  
       with:
         environmentType: Test
-        resourceGroupName: AzureSQLPrivateVNTest
+        resourceGroupName: GithubWorkflowIssue
         appName: cosmo
         createGateway: no             
       secrets:
