@@ -52,9 +52,10 @@ jobs:
             createGateway=${{ inputs.createGateway }}
 
       - name: Echo frontendSubnet
-        run: echo "::set-output name=frontendAddressPrefix::${{ steps.deploy-vnet.outputs.frontendSubnet}}"  #"::set-output name=frontendSubnet::${{ steps.deploy-vnet.outputs.frontendSubnet }}"       
+        run: echo "::set-output name=frontendAddressPrefix::${{ steps.deploy-vnet.outputs.frontendSubnet}}"    
+      - name: Echo backendSubnet
+        run: echo "::set-output name=frontendAddressPrefix::${{ steps.deploy-vnet.outputs.backendSubnet}}"          
       - name: Echo vnetID  
-        id: getVnetId
         run: echo "::set-output name=vnetId1::${{ steps.deploy-vnet.outputs.vnetId }}"
         
   deploy-infra:    
