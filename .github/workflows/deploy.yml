@@ -1,0 +1,85 @@
+name: deploy
+
+on:
+  workflow_call:
+    inputs:
+      resourceGroupName:
+        required: true
+        type: string      
+      appName:
+        required: true
+        type: string
+      environmentType:
+        required: true
+        type: string
+      createGateway:
+        required: true
+        type: string       
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true      
+
+jobs:  
+  
+  deploy-vnet:     
+      runs-on: ubuntu-latest
+      outputs:       
+        frontendSubnet: ${{ steps.deploy-vnet.outputs.frontendSubnet }}
+        backendSubnet: ${{ steps.deploy-vnet.outputs.backendSubnet }}
+        vnetId: ${{ steps.deploy-vnet.outputs.vnetId }}
+        vnetId1: ${{steps.deploy-vnet.outputs.test}}
+      steps:
+      - uses: actions/checkout@v3
+      - uses: azure/login@v1        
+        name: Sign in to Azure
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}      
+      - uses: azure/arm-deploy@v1
+        name: Run preflight validation
+        id: deploy-vnet
+        with:
+          deploymentName: ${{ github.run_number }}
+          resourceGroupName: ${{ inputs.resourceGroupName }}
+          template: ./deploy/modules/create_vnet.bicep
+          parameters: >           
+            appName=${{ inputs.appName }}
+            createGateway=${{ inputs.createGateway }}
+
+      - name: Echo frontendSubnet
+        run: echo "::set-output name=frontendAddressPrefix::${{ steps.deploy-vnet.outputs.frontendSubnet}}"  #"::set-output name=frontendSubnet::${{ steps.deploy-vnet.outputs.frontendSubnet }}"       
+      - name: Echo vnetID  
+        id: getVnetId
+        run: echo "::set-output name=vnetId1::${{ steps.deploy-vnet.outputs.vnetId }}"
+        
+  deploy-infra:    
+    runs-on: ubuntu-latest
+    needs: deploy-vnet       
+    steps:               
+    - uses: actions/checkout@v3
+    - uses: azure/login@v1
+      name: Sign in to Azure
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    - if: inputs.environmentType != 'Production'
+      uses: azure/arm-deploy@v1
+      name: Run preflight validation
+      with:
+        deploymentName: ${{ github.run_number }}
+        resourceGroupName: ${{ inputs.resourceGroupName }}       
+        template: ./deploy/azure_sql_private_endpoint.bicep
+        parameters: >
+          vnetId=${{ needs.deploy-vnet.outputs.vnetId1 }}
+          frontendSubnet=${{ needs.deploy-vnet.outputs.frontendSubnet }}
+          backendSubnet=${{ needs.deploy-vnet.outputs.backendSubnet }}
+          
+
+              
+       

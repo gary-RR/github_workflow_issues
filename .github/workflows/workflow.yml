@@ -1,0 +1,26 @@
+name: github-workflow-issue
+concurrency: github-workflow-issue
+
+on:
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+
+  deploy-vnet:
+      uses: ./.github/workflows/deploy.yml  
+      with:
+        environmentType: Test
+        resourceGroupName: AzureSQLPrivateVNTest
+        appName: cosmo
+        createGateway: no             
+      secrets:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_TEST }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}      
